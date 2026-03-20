@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchStrategyGuide, fetchManualGuide, type StrategyGuide } from '../api/client';
+import { fetchStrategyGuide, fetchManualGuide, fetchTqqqStrategies, type StrategyGuide } from '../api/client';
 
-type GuideTab = 'strategy' | 'manual';
+type GuideTab = 'strategy' | 'manual' | 'tqqq';
 
 // ===== 전략 이해 탭 컴포넌트들 =====
 
@@ -344,6 +344,129 @@ function ManualTab({ data }: { data: any }) {
     </>
   );
 }
+// ===== TQQQ 적립식 전략 탭 =====
+
+function TqqqTab({ data }: { data: any }) {
+  const riskColors: Record<string, string> = {
+    '위험': 'var(--red)', '고위험': 'var(--red)',
+    '중간': '#ffc107', '낮음': 'var(--green)',
+  };
+  const tagColors: Record<string, string> = {
+    '기본': 'var(--text-dim)', '추천': 'var(--green)',
+    '고급': 'var(--blue)', '라오어 변형': 'var(--accent)', '안전': 'var(--green)',
+  };
+
+  return (
+    <>
+      <div className="guide-hero">
+        <h2>{data.title}</h2>
+        <p className="guide-subtitle">{data.subtitle}</p>
+      </div>
+
+      {/* 경고 */}
+      <div className="tqqq-warning">
+        <h3>{data.warning.title}</h3>
+        <ul>
+          {data.warning.points.map((p: string, i: number) => (
+            <li key={i}>{p}</li>
+          ))}
+        </ul>
+        <div className="tqqq-warning__conclusion">{data.warning.conclusion}</div>
+      </div>
+
+      {/* 전략 카드들 */}
+      <h3 className="section-title">5가지 적립 전략</h3>
+      <div className="tqqq-strategies">
+        {data.strategies.map((s: any) => (
+          <div key={s.id} className={`tqqq-card ${s.tag === '추천' ? 'tqqq-card--recommended' : ''}`}>
+            <div className="tqqq-card__header">
+              <div className="tqqq-card__number">{s.id}</div>
+              <div>
+                <h4 className="tqqq-card__name">{s.name}</h4>
+                <div className="tqqq-card__tags">
+                  <span className="tqqq-tag" style={{ color: tagColors[s.tag] || 'var(--text-dim)', borderColor: tagColors[s.tag] || 'var(--border)' }}>{s.tag}</span>
+                  <span className="tqqq-risk" style={{ color: riskColors[s.risk_level] || 'var(--text-dim)' }}>위험: {s.risk_level}</span>
+                </div>
+              </div>
+            </div>
+            <p className="tqqq-card__desc">{s.description}</p>
+            <pre className="tqqq-card__example">{s.example}</pre>
+            <div className="tqqq-card__proscons">
+              <div className="tqqq-pros">
+                {s.pros.map((p: string, i: number) => (
+                  <div key={i} className="tqqq-pro-item"><span className="tqqq-check">O</span> {p}</div>
+                ))}
+              </div>
+              <div className="tqqq-cons">
+                {s.cons.map((c: string, i: number) => (
+                  <div key={i} className="tqqq-con-item"><span className="tqqq-x">X</span> {c}</div>
+                ))}
+              </div>
+            </div>
+            <div className={`tqqq-card__verdict ${s.tag === '추천' ? 'tqqq-card__verdict--good' : ''}`}>
+              {s.verdict}
+            </div>
+            {s.key_insight && (
+              <div className="tqqq-card__insight">{s.key_insight}</div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 추천 조합 */}
+      <h3 className="section-title">{data.recommended_combo.title}</h3>
+      <p className="section-desc">{data.recommended_combo.description}</p>
+      <div className="tqqq-combo">
+        {data.recommended_combo.rules.map((r: any, i: number) => (
+          <div key={i} className="tqqq-combo__rule">
+            <div className="tqqq-combo__condition">{r.condition}</div>
+            <span className="decision-arrow">&rarr;</span>
+            <div className="tqqq-combo__action">{r.action}</div>
+          </div>
+        ))}
+        <div className="routine-tip" style={{ marginTop: 12 }}>{data.recommended_combo.note}</div>
+      </div>
+
+      {/* 비교 테이블 */}
+      <h3 className="section-title">{data.comparison_table.title}</h3>
+      <div className="table-wrap">
+        <table className="trade-table">
+          <thead>
+            <tr>
+              {data.comparison_table.columns.map((c: string) => (
+                <th key={c}>{c}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.comparison_table.rows.map((row: string[], i: number) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td key={j} style={{
+                    fontWeight: j === 0 ? 600 : undefined,
+                    color: cell === '추천' ? 'var(--green)' : cell.includes('금지') ? 'var(--red)' : cell === '높음' && j === 2 ? 'var(--red)' : undefined,
+                  }}>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 결론 */}
+      <div className="tqqq-conclusion">
+        <h3>{data.conclusion.title}</h3>
+        <ol>
+          {data.conclusion.points.map((p: string, i: number) => (
+            <li key={i}>{p}</li>
+          ))}
+        </ol>
+      </div>
+    </>
+  );
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ===== 메인 =====
@@ -363,9 +486,16 @@ export default function GuidePage() {
     enabled: tab === 'manual',
   });
 
+  const { data: tqqq, isLoading: tqqqLoading } = useQuery({
+    queryKey: ['tqqq-strategies'],
+    queryFn: fetchTqqqStrategies,
+    enabled: tab === 'tqqq',
+  });
+
   const tabs: { key: GuideTab; label: string }[] = [
-    { key: 'strategy', label: '전략 이해하기' },
-    { key: 'manual', label: '수동 실전 (키움증권)' },
+    { key: 'strategy', label: '무한매수법' },
+    { key: 'tqqq', label: 'TQQQ 적립식' },
+    { key: 'manual', label: '수동 실전 (키움)' },
   ];
 
   return (
@@ -383,18 +513,20 @@ export default function GuidePage() {
       </div>
 
       {tab === 'strategy' && (
-        guideLoading
-          ? <p className="loading">로딩 중...</p>
-          : guide
-            ? <StrategyTab guide={guide} />
+        guideLoading ? <p className="loading">로딩 중...</p>
+          : guide ? <StrategyTab guide={guide} />
+            : <p className="empty-state">가이드를 불러올 수 없습니다</p>
+      )}
+
+      {tab === 'tqqq' && (
+        tqqqLoading ? <p className="loading">로딩 중...</p>
+          : tqqq ? <TqqqTab data={tqqq} />
             : <p className="empty-state">가이드를 불러올 수 없습니다</p>
       )}
 
       {tab === 'manual' && (
-        manualLoading
-          ? <p className="loading">로딩 중...</p>
-          : manual
-            ? <ManualTab data={manual} />
+        manualLoading ? <p className="loading">로딩 중...</p>
+          : manual ? <ManualTab data={manual} />
             : <p className="empty-state">가이드를 불러올 수 없습니다</p>
       )}
     </div>

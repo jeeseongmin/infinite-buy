@@ -365,3 +365,6 @@ export const fetchStrategyGuide = () =>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchManualGuide = () => request<any>('/market/manual-guide');
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const fetchTqqqStrategies = () => request<any>('/market/tqqq-strategies');
