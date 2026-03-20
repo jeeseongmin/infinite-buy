@@ -1,0 +1,11 @@
+fastapi==0.115.6
+uvicorn==0.34.0
+sqlalchemy==2.0.36
+pydantic==2.10.4
+pydantic-settings==2.7.1
+apscheduler==3.10.4
+httpx==0.28.1
+python-dotenv==1.0.1
+pykiwoom==0.5.2
+pywin32==308
+python-telegram-bot==21.9

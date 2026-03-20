@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>무한매수법 가이드 - Infinite Buy</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+/* === Base === */
+:root {
+  --bg: #0a0a0f;
+  --bg-card: #14141f;
+  --bg-hover: #1a1a2e;
+  --border: #2a2a3e;
+  --text: #e4e4ef;
+  --text-dim: #8888a0;
+  --accent: #6c5ce7;
+  --accent-hover: #7c6cf7;
+  --green: #00d68f;
+  --green-dim: rgba(0, 214, 143, 0.12);
+  --red: #ff6b6b;
+  --red-dim: rgba(255, 107, 107, 0.12);
+  --blue: #4da6ff;
+  --blue-dim: rgba(77, 166, 255, 0.12);
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* === Layout === */
+.app-layout {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 32px;
+  height: 60px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.logo-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.topbar-nav a {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.topbar-nav a:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.topbar-nav a.active {
+  color: var(--accent);
+  background: rgba(108, 92, 231, 0.12);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+.status-dot.paused {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* === Page === */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 32px 0 16px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.section-desc {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* === Stats === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stats-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stats-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.stats-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.stats-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.stats-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.stats-card--green .stats-value { color: var(--green); }
+.stats-card--red .stats-value { color: var(--red); }
+.stats-card--blue .stats-value { color: var(--blue); }
+.stats-card--green { border-color: rgba(0, 214, 143, 0.2); }
+.stats-card--red { border-color: rgba(255, 107, 107, 0.2); }
+.stats-card--blue { border-color: rgba(77, 166, 255, 0.2); }
+
+/* === Cycle Cards === */
+.cycle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.cycle-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cycle-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cycle-stock-code {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cycle-stock-name {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.cycle-status {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.cycle-status--active {
+  background: var(--green-dim);
+  color: var(--green);
+}
+.cycle-status--completed {
+  background: var(--blue-dim);
+  color: var(--blue);
+}
+.cycle-status--stopped {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+.cycle-card-body {
+  padding: 16px 20px;
+}
+
+.cycle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.cycle-row span {
+  color: var(--text-dim);
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--bg-hover);
+  border-radius: 3px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.cycle-card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* === Table === */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.trade-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.trade-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.trade-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.trade-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+.trade-table small {
+  color: var(--text-dim);
+}
+
+.trade-note {
+  max-width: 240px;
+  white-space: normal !important;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* === Badge === */
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+.badge--buy {
+  background: var(--green-dim);
+  color: var(--green);
+}
+.badge--sell {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+/* === Buttons === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+.btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--danger {
+  background: var(--red-dim);
+  color: var(--red);
+}
+.btn--danger:hover {
+  background: rgba(255, 107, 107, 0.2);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.btn--ghost:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.btn--sm {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+.btn--tab {
+  background: transparent;
+  color: var(--text-dim);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+}
+.btn--tab:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.btn--tab-active {
+  color: var(--accent);
+  background: rgba(108, 92, 231, 0.12);
+}
+
+/* === Filter Bar === */
+.filter-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+/* === Start Cycle Bar === */
+.start-cycle-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.start-cycle-bar select {
+  flex: 1;
+}
+
+/* === Forms === */
+select,
+input[type='text'],
+input[type='number'],
+input[type='password'] {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+select:focus,
+input:focus {
+  border-color: var(--accent);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-dim);
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+}
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.settings-form {
+  max-width: 480px;
+}
+
+.settings-section {
+  margin-bottom: 40px;
+}
+
+/* === Modal === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.modal h2 {
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+/* === States === */
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-dim);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-dim);
+  font-size: 14px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+/* === Cycle State Colors === */
+.cycle-status--yellow {
+  background: rgba(255, 193, 7, 0.12);
+  color: #ffc107;
+}
+.cycle-status--dim {
+  background: rgba(136, 136, 160, 0.12);
+  color: var(--text-dim);
+}
+
+.cycle-reason {
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* === Config Cards === */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.config-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.config-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.config-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.config-key {
+  color: var(--text-dim);
+  font-family: ui-monospace, monospace;
+}
+
+.config-value {
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+
+/* === Event Level Badges === */
+.badge--level-info { background: var(--blue-dim); color: var(--blue); }
+.badge--level-warn { background: rgba(255, 193, 7, 0.12); color: #ffc107; }
+.badge--level-error { background: var(--red-dim); color: var(--red); }
+.badge--level-critical { background: var(--red); color: #fff; }
+
+/* === Order Status Badges === */
+.badge--status-filled { background: var(--green-dim); color: var(--green); }
+.badge--status-pending, .badge--status-open { background: var(--blue-dim); color: var(--blue); }
+.badge--status-partial { background: rgba(255, 193, 7, 0.12); color: #ffc107; }
+.badge--status-cancelled, .badge--status-expired { background: rgba(136, 136, 160, 0.12); color: var(--text-dim); }
+.badge--status-rejected { background: var(--red-dim); color: var(--red); }
+
+/* === Stats Grid 5 columns === */
+.stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* === Recommended Cards === */
+.recommended-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.recommended-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.recommended-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.recommended-symbol {
+  font-size: 20px;
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.recommended-risk {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.recommended-risk--mid { background: rgba(255, 193, 7, 0.12); color: #ffc107; }
+.recommended-risk--high { background: var(--red-dim); color: var(--red); }
+.recommended-risk--extreme { background: var(--red); color: #fff; }
+
+.recommended-leverage {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(108, 92, 231, 0.12);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.recommended-name {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.recommended-tracking {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.recommended-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.recommended-price {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+}
+
+.recommended-change {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+.recommended-change.up { color: var(--green); }
+.recommended-change.down { color: var(--red); }
+
+.recommended-sma {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.recommended-sma.above { background: var(--green-dim); color: var(--green); }
+.recommended-sma.below { background: var(--red-dim); color: var(--red); }
+
+.recommended-reason {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* === Strategy Visual === */
+.strategy-section {
+  margin-top: 32px;
+}
+
+.strategy-summary {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+/* Phase Timeline */
+.phase-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 40px;
+}
+
+.phase-item {
+  display: flex;
+  gap: 20px;
+}
+
+.phase-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 36px;
+}
+
+.phase-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.phase-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  min-height: 24px;
+}
+
+.phase-content {
+  padding-bottom: 24px;
+}
+
+.phase-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.phase-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.phase-example {
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+  margin-bottom: 6px;
+}
+
+.phase-param {
+  font-size: 12px;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Simulation Chart */
+.sim-info {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  font-family: ui-monospace, monospace;
+}
+
+.sim-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.sim-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-step {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  min-width: 52px;
+  font-family: ui-monospace, monospace;
+}
+
+.sim-bar-area {
+  width: 200px;
+  height: 24px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sim-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.sim-bar--buy { background: var(--accent); }
+.sim-bar--hold { background: var(--border); }
+.sim-bar--sell { background: var(--green); }
+
+.sim-details {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  flex-wrap: wrap;
+}
+
+.sim-price { color: var(--text); }
+.sim-qty { color: var(--accent); font-weight: 600; }
+.sim-invested { color: var(--text-dim); }
+.sim-avg { color: var(--blue); }
+.sim-action { color: var(--text-dim); font-style: italic; }
+.sim-action--sell { color: var(--green); font-weight: 700; font-style: normal; }
+.sim-pnl { color: var(--green); font-weight: 700; }
+
+/* Risk Grid */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.risk-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.risk-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 6px;
+}
+
+.risk-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.risk-param {
+  font-size: 12px;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* === Guide Page === */
+.guide-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.guide-hero h2 {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.guide-subtitle {
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.guide-summary {
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+/* Analogy Card */
+.guide-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  margin-bottom: 40px;
+}
+
+.guide-card--highlight {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.guide-card__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.guide-card__intro {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+/* Story Timeline */
+.story-timeline {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+.story-item {
+  display: flex;
+  gap: 20px;
+}
+
+.story-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+}
+
+.story-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.story-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  min-height: 16px;
+}
+
+.story-content {
+  padding-bottom: 24px;
+  flex: 1;
+}
+
+.story-scene {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.story-analogy {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  padding: 12px 16px;
+  background: rgba(108, 92, 231, 0.08);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+}
+
+.story-actual {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-family: ui-monospace, monospace;
+  padding: 6px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+
+.guide-insight {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--green);
+  padding: 16px 20px;
+  background: var(--green-dim);
+  border-radius: var(--radius-sm);
+  line-height: 1.6;
+}
+
+/* Why Grid */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.why-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.why-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--blue);
+}
+
+.why-analogy {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  background: rgba(77, 166, 255, 0.06);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--blue);
+}
+
+.why-detail {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Phase Analogy */
+.phase-analogy {
+  font-size: 14px;
+  color: var(--text);
+  padding: 8px 12px;
+  background: rgba(108, 92, 231, 0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  line-height: 1.5;
+  border-left: 3px solid var(--accent);
+}
+
+/* Risk Analogy */
+.risk-analogy {
+  font-size: 13px;
+  color: var(--text);
+  padding: 6px 10px;
+  background: rgba(255, 107, 107, 0.06);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  line-height: 1.5;
+  border-left: 3px solid var(--red);
+  font-style: italic;
+}
+
+/* Simulation Comments */
+.sim-comments {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sim-comment {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+}
+
+.sim-comment__step {
+  color: var(--text-dim);
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  min-width: 52px;
+}
+
+.sim-comment__text {
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* FAQ */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.faq-question {
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.faq-question::before {
+  content: 'Q';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item[open] .faq-question {
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-answer {
+  padding: 16px 20px 16px 60px;
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* === Manual Guide === */
+
+/* Prerequisites */
+.prereq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.prereq-item {
+  display: flex;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.prereq-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.prereq-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.prereq-detail {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.prereq-how {
+  font-size: 13px;
+  color: var(--text);
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+  font-family: ui-monospace, monospace;
+}
+
+/* Daily Routine */
+.routine-timezone {
+  font-size: 14px;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.routine-timeline {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 40px;
+}
+
+.routine-step {
+  display: flex;
+  gap: 20px;
+}
+
+.routine-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.routine-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(108, 92, 231, 0.12);
+  padding: 6px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+  font-family: ui-monospace, monospace;
+}
+
+.routine-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  min-height: 16px;
+}
+
+.routine-content {
+  flex: 1;
+  padding-bottom: 28px;
+}
+
+.routine-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.routine-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.routine-duration {
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.routine-actions {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.routine-actions li {
+  font-size: 14px;
+  padding: 4px 0 4px 20px;
+  position: relative;
+  line-height: 1.6;
+}
+
+.routine-actions li::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.routine-actions li.routine-subheader {
+  font-weight: 700;
+  color: var(--accent);
+  padding-left: 0;
+  margin-top: 8px;
+}
+
+.routine-actions li.routine-subheader::before {
+  display: none;
+}
+
+.routine-actions li.routine-divider {
+  height: 4px;
+  padding: 0;
+}
+
+.routine-actions li.routine-divider::before {
+  display: none;
+}
+
+.routine-menu {
+  font-size: 13px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--blue);
+  margin-bottom: 8px;
+  font-family: ui-monospace, monospace;
+}
+
+.routine-menu__label {
+  font-weight: 700;
+  color: var(--blue);
+  margin-right: 8px;
+}
+
+.routine-decision {
+  font-size: 14px;
+  padding: 10px 14px;
+  background: rgba(255, 193, 7, 0.08);
+  border-left: 3px solid #ffc107;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.routine-warning {
+  font-size: 14px;
+  padding: 10px 14px;
+  background: var(--red-dim);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  color: var(--red);
+  font-weight: 600;
+}
+
+.routine-tip {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--green);
+  line-height: 1.5;
+}
+
+/* Decision Tree */
+.decision-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.decision-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+
+.decision-priority {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.decision-row--p1 .decision-priority { background: var(--green); color: #fff; }
+.decision-row--p2 .decision-priority { background: var(--red); color: #fff; }
+.decision-row--p3 .decision-priority { background: var(--accent); color: #fff; }
+.decision-row--p4 .decision-priority { background: var(--blue); color: #fff; }
+.decision-row--p5 .decision-priority { background: var(--border); color: var(--text-dim); }
+
+.decision-condition {
+  font-family: ui-monospace, monospace;
+  flex: 1;
+}
+
+.decision-arrow {
+  color: var(--text-dim);
+}
+
+.decision-action {
+  font-weight: 600;
+  min-width: 140px;
+}
+
+.decision-row--p1 .decision-action { color: var(--green); }
+.decision-row--p2 .decision-action { color: var(--red); }
+.decision-row--p3 .decision-action { color: var(--accent); }
+
+/* Weekly Schedule */
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.weekly-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.weekly-card--rest {
+  opacity: 0.5;
+}
+
+.weekly-day {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.weekly-focus {
+  font-size: 14px;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.weekly-extra {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* Kiwoom Screen Code */
+.screen-code {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(108, 92, 231, 0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Common Mistakes */
+.mistakes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.mistake-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+
+.mistake-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mistake-x {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.mistake-text {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mistake-consequence {
+  font-size: 13px;
+  color: var(--red);
+  padding: 6px 12px;
+  background: var(--red-dim);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.mistake-fix {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mistake-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Checklist */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 15px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.checklist-item:last-child {
+  border-bottom: none;
+}
+
+.checklist-item input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.checklist-item:has(input:checked) span {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+/* === Market Ticker === */
+.market-ticker {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.market-ticker__badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.market-ticker__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.market-ticker__symbol {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.market-ticker__price {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+
+.market-ticker__change {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+.market-ticker__change--up { color: var(--green); }
+.market-ticker__change--down { color: var(--red); }
+
+.market-ticker__volume {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .logo-sub {
+    display: none;
+  }
+  .topbar-nav a {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .main-content {
+    padding: 20px 16px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid--3 {
+    grid-template-columns: 1fr;
+  }
+  .cycle-grid {
+    grid-template-columns: 1fr;
+  }
+  .start-cycle-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.guide-page { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+.tab-bar { display: flex; gap: 4px; margin-bottom: 24px; }
+.print-btn { position: fixed; bottom: 24px; right: 24px; z-index: 999; }
+@media print { .tab-bar, .print-btn, .filter-bar { display: none; } .guide-page { padding: 0; } }
+</style>
+</head>
+<body>
+<div class="guide-page" id="app">
+  <div class="filter-bar tab-bar">
+    <button class="btn btn--tab btn--tab-active" onclick="showTab('strategy')">전략 이해하기</button>
+    <button class="btn btn--tab" onclick="showTab('manual')">수동 실전 (키움증권)</button>
+  </div>
+  <div id="strategy-tab"></div>
+  <div id="manual-tab" style="display:none"></div>
+</div>
+
+<button class="btn btn--primary print-btn" onclick="window.print()">PDF 저장</button>
+
+<script>
+const strategy = {"title": "라오어 무한매수법", "subtitle": "주가가 내려갈수록 유리해지는 마법의 쇼핑법", "summary": "분할매수로 평균단가를 낮추고, 목표 수익률 도달 시 전량 매도하는 전략", "analogy": {"title": "마트 세일 비유로 이해하기", "intro": "무한매수법은 마트에서 좋아하는 과일을 사는 것과 같습니다.", "story": [{"scene": "장 보기 예산 짜기", "analogy": "이번 달 사과 예산을 10만원으로 정하고, 16번에 나눠서 사기로 합니다. 한 번에 약 6,250원씩.", "actual": "투자금 $10,000을 16트랜치로 나누어 1회 $625씩 투자"}, {"scene": "첫 번째 장보기", "analogy": "사과 한 개에 1,000원. 6개를 삽니다. 내 평균 구매가: 1,000원.", "actual": "QLD $85에 7주 매수. 평균단가 $85.00"}, {"scene": "사과가 세일!", "analogy": "다음 주에 사과가 950원으로 떨어졌습니다. 좋아! 더 싸졌으니 또 삽니다. 평균 구매가가 975원으로 내려갑니다.", "actual": "주가가 1.5% 하락 → 추가 매수 → 평균단가가 낮아짐"}, {"scene": "계속 세일이면?", "analogy": "900원, 850원... 세일할 때마다 삽니다. 평균가는 계속 내려가서 900원이 됩니다.", "actual": "하락할 때마다 트랜치 매수 → 평단이 계속 하락"}, {"scene": "가격이 반등!", "analogy": "사과 가격이 다시 올라서 913원이 됐습니다. 평균 구매가 900원보다 1.4% 비싸졌으니 전부 팝니다!", "actual": "현재가가 평단 + 1.4% 도달 → 전량 매도 → 수익 실현"}, {"scene": "정산", "analogy": "싸게 많이 사서 조금만 올라도 이득. 10만원 투자해서 101,400원 회수. 치킨값 벌었습니다!", "actual": "사이클 완료. 쿨다운 후 새 사이클 시작 가능."}], "key_insight": "핵심: 가격이 내려가면 '손해'가 아니라 '더 싸게 살 기회'입니다. 떨어질수록 평균단가가 낮아져서, 조금만 반등해도 수익이 됩니다."}, "why_it_works": [{"title": "왜 레버리지 ETF인가?", "analogy": "롤러코스터를 생각해보세요. 보통 주식이 미끄럼틀이면, 2x 레버리지는 롤러코스터입니다. 오르내림이 크니까 '싸게 사서 조금 올랐을 때 파는' 기회가 더 자주 옵니다.", "detail": "레버리지 ETF는 변동성이 커서 트랜치 매수/익절 사이클이 빠르게 돌아갑니다."}, {"title": "왜 분할매수인가?", "analogy": "계란을 한 바구니에 담지 않는 것과 같습니다. 10,000원을 한 번에 넣으면 떨어졌을 때 손해만 봅니다. 16번에 나눠서 사면, 떨어질 때마다 더 싸게 사서 평균가를 낮출 수 있습니다.", "detail": "DCA(Dollar Cost Averaging)의 변형. 시간 분산이 아닌 가격 분산."}, {"title": "왜 1.4%에 파나?", "analogy": "낚시를 생각하세요. 대어를 기다리면 하루종일 못 잡지만, 작은 물고기를 빠르게 여러 마리 잡으면 결국 더 많이 잡습니다. 작은 수익을 반복하는 게 핵심입니다.", "detail": "사이클 회전율이 높을수록 복리 효과. 연간 수십 회 사이클 가능."}], "phases": [{"id": 1, "name": "시드 투입", "icon": "seed", "description": "총 투자금(사이클 예산)을 정하고 N등분(트랜치)으로 나눈다.", "analogy": "이번 달 장보기 예산을 정하고, 몇 번에 나눠서 살지 정하는 단계", "example": "예산 $10,000 / 16트랜치 = 1회 매수 $625"}, {"id": 2, "name": "첫 매수", "icon": "buy", "description": "첫 트랜치를 지정가로 매수하여 사이클 시작.", "analogy": "마트에서 사과를 처음 사는 것. 현재 가격 그대로 삽니다.", "example": "QLD $85.00 x 7주 = $595 투자"}, {"id": 3, "name": "추가 매수 (물타기)", "icon": "add", "description": "평균단가 대비 일정% 하락 시 다음 트랜치 매수. 평단이 내려간다.", "analogy": "사과가 세일 중! 더 싸졌으니 또 삽니다. 살수록 평균 구매가가 내려갑니다.", "example": "1.5% 하락마다 추가매수 -> 평단 점차 하락", "key_param": "add_trigger_pct (기본 1.5%)"}, {"id": 4, "name": "익절 (전량 매도)", "icon": "profit", "description": "현재가가 평균단가 + 목표수익률 도달 시 전량 매도.", "analogy": "사과 가격이 내 평균 구매가보다 조금이라도 오르면, 전부 팝니다!", "example": "평단 $82 -> 목표 $83.15 (+1.4%) 도달 시 매도", "key_param": "take_profit_pct (기본 1.4%)"}, {"id": 5, "name": "사이클 완료", "icon": "complete", "description": "매도 완료 후 쿨다운. 새 사이클 시작 가능.", "analogy": "장보기 끝! 수익금 챙기고 다음 주에 다시 시작합니다.", "example": "투자금 $10,000 -> 회수 $10,140 (수익 $140)"}], "risk_controls": [{"name": "스프레드 가드", "description": "호가 스프레드가 12bps 이상이면 매수 보류", "analogy": "마트에서 사과 매입가와 판매가 차이가 너무 크면 사지 않는 것", "param": "spread_guard_bps = 12"}, {"name": "갭 가드", "description": "전일 종가 대비 2.2% 이상 갭이면 관망", "analogy": "어제 1,000원이던 사과가 오늘 갑자기 1,200원이면 일단 기다리는 것", "param": "gap_guard_pct = 2.2%"}, {"name": "레짐 필터", "description": "QQQ가 SMA200 아래면 하락장 -> 신규매수 중단", "analogy": "태풍 예보가 뜨면 배를 항구에 묶어두는 것. 시장 전체가 위험하면 잠시 쉽니다.", "param": "regime_symbol = QQQ"}, {"name": "손절 (하드 드로다운)", "description": "평단 대비 12% 이상 하락 시 전량 손절", "analogy": "사과가 썩기 시작하면 미련 없이 버리는 것. 작은 손해로 큰 손해를 막습니다.", "param": "hard_drawdown_pct = 12%"}, {"name": "킬스위치", "description": "연속 주문 거부, 시세 지연, 포지션 불일치 시 자동 정지", "analogy": "차 계기판에 경고등이 켜지면 일단 멈추고 점검하는 것", "param": "max_consecutive_rejects = 3"}], "simulation_example": {"symbol": "QLD", "budget": 10000, "tranches": 16, "per_tranche": 625, "steps": [{"step": 1, "price": 85.0, "qty": 7, "invested": 595, "avg_cost": 85.0, "comment": "첫 매수. 사과 7개를 개당 $85에 삽니다."}, {"step": 2, "price": 83.73, "qty": 7, "invested": 1181, "avg_cost": 84.36, "comment": "1.5% 세일! 7개 더 삽니다. 평균가 $84.36으로 하락."}, {"step": 3, "price": 82.47, "qty": 8, "invested": 1841, "avg_cost": 83.68, "comment": "또 세일! 평균가가 $83.68로 더 내려갑니다."}, {"step": 4, "price": 81.24, "qty": 8, "invested": 2491, "avg_cost": 83.03, "comment": "계속 하락. 하지만 평단도 계속 낮아집니다."}, {"step": 5, "price": 80.02, "qty": 8, "invested": 3131, "avg_cost": 82.39, "comment": "5번째 매수 완료. 평단 $82.39."}, {"step": 6, "price": 82.5, "qty": 0, "invested": 3131, "avg_cost": 82.39, "action": "HOLD", "comment": "반등 중이지만 아직 목표(+1.4%)에 안 도달. 기다립니다."}, {"step": 7, "price": 83.54, "qty": 0, "invested": 3131, "avg_cost": 82.39, "action": "SELL (+1.4% 도달)", "sell_price": 83.54, "pnl": 43.7, "comment": "목표 도달! 전량 매도. $43.70 수익 실현!"}]}, "faq": [{"q": "계속 떨어지기만 하면 어떡하나요?", "a": "16트랜치를 다 쓰면 더 이상 매수하지 않고 기다립니다. 12% 이상 떨어지면 손절(하드 드로다운)이 발동되어 손실을 제한합니다. 끝없이 물타기를 하지 않습니다."}, {"q": "1.4% 수익이면 너무 적지 않나요?", "a": "한 사이클만 보면 적지만, 이 사이클을 1년에 수십 번 반복합니다. 1.4% x 30회 = 42% 수익. 복리로 따지면 더 큽니다. 작은 물고기를 빠르게 많이 잡는 전략입니다."}, {"q": "왜 삼성전자가 아니라 QLD 같은 ETF인가요?", "a": "개별 주식은 실적 악화, 상장폐지 등 회사 고유의 위험이 있습니다. QLD 같은 지수 추종 ETF는 나스닥100 전체를 따라가므로, 한 회사가 망해도 다른 회사가 메꿔줍니다. 사과 한 종류만 사는 게 아니라 과일 바구니를 사는 것과 같습니다."}, {"q": "레버리지가 위험하지 않나요?", "a": "맞습니다. 레버리지 ETF는 변동성이 큽니다. 하지만 무한매수법은 바로 이 변동성을 이용하는 전략입니다. 롤러코스터가 무섭지만, 안전벨트(리스크 관리)를 매고 타면 스릴을 즐길 수 있는 것과 같습니다."}, {"q": "언제 시작하면 좋나요?", "a": "레짐 필터가 자동으로 판단합니다. QQQ가 200일 이동평균선 위에 있으면 시장이 건강하다는 뜻이니 시작해도 좋습니다. 태풍 예보가 없을 때 배를 띄우는 것과 같습니다."}]};
+const manual = {"title": "키움증권으로 무한매수법 수동 실행하기", "subtitle": "미국 정규장 기준, 매일 밤 따라하는 루틴", "prerequisites": {"title": "시작 전 준비물", "items": [{"name": "키움증권 계좌 개설", "detail": "해외주식 거래가 가능한 종합매매 계좌. 비대면 개설 가능.", "how": "키움증권 앱 → 계좌개설 → 비대면 계좌개설 → 신분증 촬영 → 영상통화 인증"}, {"name": "영웅문 글로벌 설치", "detail": "해외주식 전용 HTS. PC에서만 가능 (모바일은 '영웅문S 글로벌').", "how": "키움증권 홈페이지 → 트레이딩 → HTS → 영웅문 글로벌 다운로드"}, {"name": "해외주식 거래 신청", "detail": "계좌 개설 후 별도로 해외주식 거래를 신청해야 합니다.", "how": "영웅문 글로벌 → [8600] 해외주식 거래신청 또는 키움 앱에서 신청"}, {"name": "환전 (원화 → 달러)", "detail": "해외주식은 달러로 거래. 미리 환전해두거나 자동환전 설정.", "how": "영웅문 글로벌 → [8800] 해외주식 환전 → 원화 입금 후 USD 매수"}, {"name": "엑셀 또는 노트", "detail": "매수 기록, 평균단가, 트랜치 진행 상황을 기록할 도구.", "how": "구글 스프레드시트 추천. 종목, 매수가, 수량, 평단, 트랜치 번호 컬럼."}]}, "daily_routine": {"title": "매일 밤 루틴 (월~금)", "timezone_note": "미국 정규장: 서머타임 23:30~06:00 / 동절기 00:30~07:00 (한국시간 기준)", "steps": [{"time": "22:50 (서머타임) / 23:50 (동절기)", "title": "기상 & 장 전 준비", "duration": "10분", "actions": ["PC 켜고 영웅문 글로벌 로그인", "보안카드 또는 OTP 준비", "로그인: 영웅문 글로벌 실행 → ID/PW 입력 → 인증서 비밀번호"], "tip": "잠이 안 깨면 알람을 2개 맞추세요. 하나는 22:45, 하나는 22:50."}, {"time": "23:00", "title": "시장 상황 체크 (레짐 필터)", "duration": "5분", "actions": ["[8100] 해외주식 현재가 화면 열기", "종목코드에 'QQQ' 입력 → 현재가 확인", "차트 탭 → 일봉 → 이동평균선 200일(SMA200) 확인", "QQQ 현재가가 SMA200 위인지 아래인지 확인"], "decision": "QQQ가 SMA200 아래면 → 오늘은 쉽니다 (신규매수 안 함). 이미 보유 중이면 익절/손절 체크만.", "menu_path": "영웅문 글로벌 → 화면번호 [8100] → 종목코드 QQQ → 차트", "tip": "TradingView(tradingview.com)에서 QQQ 차트를 보는 게 더 편합니다. SMA 200을 추가하세요."}, {"time": "23:20", "title": "내 포지션 확인", "duration": "5분", "actions": ["[8700] 해외주식 잔고 화면 열기", "QLD (또는 내 종목) 보유수량, 평균단가 확인", "현재가와 평균단가의 차이(%) 계산", "엑셀/노트에 오늘 날짜, 현재가, 평단, 보유수량 기록"], "menu_path": "영웅문 글로벌 → [8700] 해외주식 잔고현황", "tip": "평단 대비 변동률 = (현재가 - 평단) / 평단 × 100"}, {"time": "23:25", "title": "의사결정: 매도 / 홀드 / 매수", "duration": "5분", "actions": ["[ 매도 체크 ] 현재가 ≥ 평균단가 × 1.014 (목표 +1.4%) → 전량 매도!", "[ 손절 체크 ] 현재가 ≤ 평균단가 × 0.88 (하락 -12%) → 전량 손절!", "[ 매수 체크 ] 현재가 ≤ 평균단가 × 0.985 (하락 -1.5%) → 추가 매수", "[ 첫 매수 ] 보유 없고 레짐 OK → 첫 트랜치 매수", "위 조건 모두 아니면 → 오늘은 홀드 (아무것도 안 함)"], "decision_tree": [{"condition": "현재가 ≥ 평단 × 1.014", "action": "전량 매도 (익절)", "priority": 1}, {"condition": "현재가 ≤ 평단 × 0.88", "action": "전량 매도 (손절)", "priority": 2}, {"condition": "현재가 ≤ 평단 × 0.985", "action": "추가 매수 (다음 트랜치)", "priority": 3}, {"condition": "보유 없음 & 레짐 OK", "action": "첫 트랜치 매수", "priority": 4}, {"condition": "위 모두 해당 없음", "action": "홀드 (대기)", "priority": 5}], "tip": "매도 > 홀드 > 매수 순서로 판단합니다. 팔 수 있으면 무조건 파는 게 우선!"}, {"time": "23:30 (장 시작)", "title": "주문 실행", "duration": "5~10분", "actions": ["[8200] 해외주식 주문 화면 열기", "종목코드: QLD (또는 내 종목) 입력", "주문구분: '지정가' 선택 (시장가 절대 금지!)", "", "■ 매수인 경우:", "  - 주문가격: 현재 매도호가(Ask) 입력", "  - 주문수량: 1트랜치 금액 ÷ 주문가격 (소수점 버림)", "  - 예) 트랜치 $625, 주가 $83 → 625÷83 = 7주", "  - '매수' 버튼 클릭 → 비밀번호 입력 → 확인", "", "■ 매도인 경우:", "  - 주문가격: 현재 매수호가(Bid) 입력", "  - 주문수량: 전량 (잔고의 보유수량 전부)", "  - '매도' 버튼 클릭 → 비밀번호 입력 → 확인"], "menu_path": "영웅문 글로벌 → [8200] 해외주식 주문", "warning": "반드시 '지정가'로 주문하세요. 시장가는 불리한 가격에 체결될 수 있습니다.", "tip": "장 시작 직후 5분(23:30~23:35)은 변동성이 큽니다. 급하지 않으면 23:35 이후에 주문하세요."}, {"time": "23:40", "title": "체결 확인", "duration": "5분", "actions": ["[8300] 해외주식 체결내역 화면 열기", "방금 넣은 주문이 '체결' 상태인지 확인", "'미체결'이면 1~2분 기다린 후 확인", "5분 지나도 미체결이면 → 주문 취소 후 가격 수정해서 재주문", "체결되었으면 → 엑셀에 기록 (날짜, 매수/매도, 가격, 수량, 새 평단)"], "menu_path": "영웅문 글로벌 → [8300] 해외주식 체결/미체결", "tip": "미체결 주문은 반드시 정리하세요. 다음 날까지 남겨두면 의도치 않게 체결될 수 있습니다."}, {"time": "23:50", "title": "기록 & 정리", "duration": "5분", "actions": ["엑셀에 오늘 거래 기록 업데이트", "새로운 평균단가 계산 (매수한 경우)", "다음 매수 트리거 가격 계산: 새 평단 × 0.985", "다음 익절 목표가 계산: 새 평단 × 1.014", "미체결 주문 없는지 최종 확인", "영웅문 글로벌 로그아웃 → 취침"], "tip": "총 소요시간 약 30~40분. 체결이 빨리 되면 20분이면 끝납니다."}]}, "weekly_schedule": {"title": "요일별 루틴", "note": "미국 증시는 월~금 개장. 한국시간으로는 화~토 새벽.", "days": [{"day": "월요일 밤 (화요일 새벽)", "focus": "주간 시작. 주말 동안 뉴스 체크. QQQ 레짐 재확인.", "extra": "주말 사이 큰 이벤트(FOMC, 실적발표 등) 있었는지 확인"}, {"day": "화요일 밤", "focus": "일반 루틴. 월요일 변동에 따른 트랜치 매수 여부 판단.", "extra": ""}, {"day": "수요일 밤", "focus": "일반 루틴. FOMC 등 연준 이벤트가 수요일에 많으므로 주의.", "extra": "연준 발표일이면 변동성 클 수 있음 → 장 시작 후 30분 관망 추천"}, {"day": "목요일 밤", "focus": "일반 루틴. 실업수당 청구건수 발표일 (매주 목).", "extra": ""}, {"day": "금요일 밤 (토요일 새벽)", "focus": "주간 마감. 미체결 주문 전부 정리. 주간 성과 정리.", "extra": "주말에 거래 불가하므로, 포지션 점검 & 다음 주 계획 수립"}, {"day": "토/일", "focus": "쉬는 날. 거래 없음.", "extra": "엑셀 정리, 다음 주 경제지표 일정 확인 (investing.com 경제캘린더)"}]}, "excel_template": {"title": "엑셀 기록 예시", "columns": ["날짜", "종목", "매수/매도", "체결가", "수량", "투자금 누계", "평균단가", "트랜치 #", "메모"], "example_rows": [["2026-03-17", "QLD", "매수", "$85.00", "7주", "$595", "$85.00", "1/16", "첫 매수"], ["2026-03-18", "QLD", "매수", "$83.73", "7주", "$1,181", "$84.36", "2/16", "1.5% 하락 추매"], ["2026-03-19", "QLD", "-", "-", "-", "$1,181", "$84.36", "-", "홀드 (조건 미충족)"], ["2026-03-20", "QLD", "매수", "$82.47", "8주", "$1,841", "$83.68", "3/16", "1.5% 하락 추매"], ["2026-03-24", "QLD", "매도", "$84.85", "22주", "$0", "-", "익절", "+1.4% 도달, +$25.74"]]}, "kiwoom_screens": {"title": "자주 쓰는 영웅문 글로벌 화면번호", "screens": [{"code": "8100", "name": "해외주식 현재가", "use": "종목 시세 확인, 차트 보기"}, {"code": "8200", "name": "해외주식 주문", "use": "매수/매도 주문 넣기"}, {"code": "8300", "name": "해외주식 체결/미체결", "use": "주문 체결 확인, 미체결 취소"}, {"code": "8400", "name": "해외주식 주문가능금액", "use": "달러 잔고, 주문 가능 금액 확인"}, {"code": "8600", "name": "해외주식 거래신청", "use": "최초 1회 해외주식 거래 신청"}, {"code": "8700", "name": "해외주식 잔고현황", "use": "보유 종목, 평단, 평가손익 확인"}, {"code": "8800", "name": "해외주식 환전", "use": "원화 → 달러 환전"}]}, "common_mistakes": [{"mistake": "시장가로 주문 넣기", "consequence": "특히 장 시작 직후 스프레드가 넓어서 비싼 가격에 체결됨", "fix": "항상 '지정가'로 주문. 매수는 Ask 가격, 매도는 Bid 가격 기준."}, {"mistake": "미체결 주문 방치", "consequence": "다음 날 의도치 않은 시점에 체결되어 계획이 틀어짐", "fix": "매일 [8300]에서 미체결 주문 확인. 장 마감 전 전부 정리."}, {"mistake": "감정적 판단 (더 떨어질 것 같아서 매수 안 함)", "consequence": "기계적으로 해야 할 추가매수를 놓쳐서 평단이 안 내려감", "fix": "조건이 맞으면 무조건 실행. 감정을 배제하는 게 이 전략의 핵심."}, {"mistake": "트랜치 금액을 무시하고 몰빵", "consequence": "초반에 예산을 다 써서 나중에 물타기 불가", "fix": "반드시 정해진 트랜치 금액만 투자. $625이면 $625만."}, {"mistake": "익절 목표를 욕심내서 올림 (1.4% → 3%)", "consequence": "사이클 회전이 느려지고, 하락장에서 익절 못 하고 물림", "fix": "1.4%를 지키세요. 작은 수익 × 높은 회전 = 큰 수익."}, {"mistake": "레짐 필터 무시 (하락장에서 신규 매수)", "consequence": "시장 전체가 하락하면 레버리지 ETF는 더 크게 하락", "fix": "QQQ가 SMA200 아래면 신규 사이클 시작 금지. 기존 보유분만 관리."}, {"mistake": "환전을 안 해두고 주문", "consequence": "달러 잔고 부족으로 주문 거부", "fix": "주말에 미리 다음 주 필요한 달러를 환전해두세요."}], "checklist": {"title": "매일 체크리스트", "items": ["영웅문 글로벌 로그인", "QQQ 현재가 & SMA200 확인 (레짐 필터)", "[8700] 내 잔고 & 평균단가 확인", "매도 조건 체크 (평단 +1.4%?)", "손절 조건 체크 (평단 -12%?)", "추가매수 조건 체크 (평단 -1.5%?)", "조건 맞으면 [8200]에서 지정가 주문", "[8300]에서 체결 확인", "미체결 주문 정리", "엑셀 기록 업데이트", "로그아웃 & 취침"]}};
+
+function showTab(tab) {
+  document.getElementById('strategy-tab').style.display = tab === 'strategy' ? '' : 'none';
+  document.getElementById('manual-tab').style.display = tab === 'manual' ? '' : 'none';
+  document.querySelectorAll('.tab-bar .btn').forEach((b, i) => {
+    b.className = 'btn btn--tab' + (i === (tab === 'strategy' ? 0 : 1) ? ' btn--tab-active' : '');
+  });
+}
+
+function renderStrategy() {
+  const g = strategy;
+  const sim = g.simulation_example;
+  const maxInv = Math.max(...sim.steps.map(s => s.invested));
+  
+  let html = `
+    <div class="guide-hero">
+      <h2>${g.title}</h2>
+      <p class="guide-subtitle">${g.subtitle}</p>
+      <p class="guide-summary">${g.summary}</p>
+    </div>
+
+    <div class="guide-card guide-card--highlight">
+      <h3 class="guide-card__title">${g.analogy.title}</h3>
+      <p class="guide-card__intro">${g.analogy.intro}</p>
+      <div class="story-timeline">
+        ${g.analogy.story.map((s, i) => `
+          <div class="story-item">
+            <div class="story-connector">
+              <div class="story-dot">${i+1}</div>
+              ${i < g.analogy.story.length - 1 ? '<div class="story-line"></div>' : ''}
+            </div>
+            <div class="story-content">
+              <h4 class="story-scene">${s.scene}</h4>
+              <div class="story-analogy">${s.analogy}</div>
+              <div class="story-actual">${s.actual}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="guide-insight">${g.analogy.key_insight}</div>
+    </div>
+
+    <h3 class="section-title">왜 이 전략이 작동하나요?</h3>
+    <div class="why-grid">
+      ${g.why_it_works.map(w => `
+        <div class="why-card">
+          <h4 class="why-title">${w.title}</h4>
+          <div class="why-analogy">${w.analogy}</div>
+          <div class="why-detail">${w.detail}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">전략 5단계</h3>
+    <div class="phase-timeline">
+      ${g.phases.map((p, i) => `
+        <div class="phase-item">
+          <div class="phase-connector">
+            <div class="phase-dot">${p.id}</div>
+            ${i < g.phases.length - 1 ? '<div class="phase-line"></div>' : ''}
+          </div>
+          <div class="phase-content">
+            <h4 class="phase-name">${p.name}</h4>
+            <p class="phase-desc">${p.description}</p>
+            ${p.analogy ? `<div class="phase-analogy">${p.analogy}</div>` : ''}
+            <div class="phase-example">${p.example}</div>
+            ${p.key_param ? `<code class="phase-param">${p.key_param}</code>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">시뮬레이션 예시</h3>
+    <div class="sim-info">${sim.symbol} / 예산 $${sim.budget.toLocaleString()} / ${sim.tranches}트랜치 (1회 $${sim.per_tranche})</div>
+    <div class="sim-chart">
+      ${sim.steps.map(s => `
+        <div class="sim-row">
+          <div class="sim-step">Step ${s.step}</div>
+          <div class="sim-bar-area">
+            <div class="sim-bar ${s.action && s.action.startsWith('SELL') ? 'sim-bar--sell' : s.qty > 0 ? 'sim-bar--buy' : 'sim-bar--hold'}"
+                 style="width:${(s.invested / maxInv * 100)}%"></div>
+          </div>
+          <div class="sim-details">
+            <span class="sim-price">$${s.price.toFixed(2)}</span>
+            ${s.qty > 0 ? `<span class="sim-qty">+${s.qty}주</span>` : ''}
+            <span class="sim-invested">$${s.invested.toLocaleString()}</span>
+            <span class="sim-avg">평단 $${s.avg_cost.toFixed(2)}</span>
+            ${s.action ? `<span class="sim-action ${s.action.startsWith('SELL') ? 'sim-action--sell' : ''}">${s.action}</span>` : ''}
+            ${s.pnl != null ? `<span class="sim-pnl">+$${s.pnl.toFixed(2)}</span>` : ''}
+          </div>
+        </div>
+      `).join('')}
+      <div class="sim-comments">
+        ${sim.steps.filter(s => s.comment).map(s => `
+          <div class="sim-comment">
+            <span class="sim-comment__step">Step ${s.step}</span>
+            <span class="sim-comment__text">${s.comment}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <h3 class="section-title">안전장치</h3>
+    <div class="risk-grid">
+      ${g.risk_controls.map(r => `
+        <div class="risk-item">
+          <div class="risk-name">${r.name}</div>
+          <div class="risk-desc">${r.description}</div>
+          ${r.analogy ? `<div class="risk-analogy">${r.analogy}</div>` : ''}
+          <code class="risk-param">${r.param}</code>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">자주 묻는 질문</h3>
+    <div class="faq-list">
+      ${g.faq.map(f => `
+        <details class="faq-item">
+          <summary class="faq-question">${f.q}</summary>
+          <div class="faq-answer">${f.a}</div>
+        </details>
+      `).join('')}
+    </div>
+  `;
+  document.getElementById('strategy-tab').innerHTML = html;
+}
+
+function renderManual() {
+  const d = manual;
+  let html = `
+    <div class="guide-hero">
+      <h2>${d.title}</h2>
+      <p class="guide-subtitle">${d.subtitle}</p>
+    </div>
+
+    <h3 class="section-title">${d.prerequisites.title}</h3>
+    <div class="prereq-list">
+      ${d.prerequisites.items.map((item, i) => `
+        <div class="prereq-item">
+          <div class="prereq-number">${i+1}</div>
+          <div class="prereq-content">
+            <h4 class="prereq-name">${item.name}</h4>
+            <p class="prereq-detail">${item.detail}</p>
+            <div class="prereq-how">${item.how}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">${d.daily_routine.title}</h3>
+    <div class="routine-timezone">${d.daily_routine.timezone_note}</div>
+    <div class="routine-timeline">
+      ${d.daily_routine.steps.map((step, i) => `
+        <div class="routine-step">
+          <div class="routine-connector">
+            <div class="routine-time">${step.time}</div>
+            ${i < d.daily_routine.steps.length - 1 ? '<div class="routine-line"></div>' : ''}
+          </div>
+          <div class="routine-content">
+            <div class="routine-header">
+              <h4 class="routine-title">${step.title}</h4>
+              <span class="routine-duration">${step.duration}</span>
+            </div>
+            <ul class="routine-actions">
+              ${step.actions.map(a => a === '' ? '<li class="routine-divider"></li>' : `<li class="${a.startsWith('■') ? 'routine-subheader' : ''}">${a}</li>`).join('')}
+            </ul>
+            ${step.menu_path ? `<div class="routine-menu"><span class="routine-menu__label">메뉴 경로</span>${step.menu_path}</div>` : ''}
+            ${step.decision ? `<div class="routine-decision">${step.decision}</div>` : ''}
+            ${step.decision_tree ? `
+              <div class="decision-tree">
+                ${step.decision_tree.map(dt => `
+                  <div class="decision-row decision-row--p${dt.priority}">
+                    <span class="decision-priority">${dt.priority}</span>
+                    <span class="decision-condition">${dt.condition}</span>
+                    <span class="decision-arrow">&rarr;</span>
+                    <span class="decision-action">${dt.action}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+            ${step.warning ? `<div class="routine-warning">${step.warning}</div>` : ''}
+            ${step.tip ? `<div class="routine-tip">${step.tip}</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">${d.weekly_schedule.title}</h3>
+    <p class="section-desc">${d.weekly_schedule.note}</p>
+    <div class="weekly-grid">
+      ${d.weekly_schedule.days.map(day => `
+        <div class="weekly-card ${day.day.includes('토/일') ? 'weekly-card--rest' : ''}">
+          <div class="weekly-day">${day.day}</div>
+          <div class="weekly-focus">${day.focus}</div>
+          ${day.extra ? `<div class="weekly-extra">${day.extra}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">${d.kiwoom_screens.title}</h3>
+    <div class="table-wrap">
+      <table class="trade-table">
+        <thead><tr><th>화면번호</th><th>화면명</th><th>용도</th></tr></thead>
+        <tbody>
+          ${d.kiwoom_screens.screens.map(s => `
+            <tr>
+              <td><code class="screen-code">[${s.code}]</code></td>
+              <td style="font-weight:600">${s.name}</td>
+              <td style="color:var(--text-dim)">${s.use}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-title">${d.excel_template.title}</h3>
+    <div class="table-wrap">
+      <table class="trade-table">
+        <thead><tr>${d.excel_template.columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${d.excel_template.example_rows.map(row => `<tr>${row.map((cell, j) => `<td style="${j >= 2 ? 'font-family:ui-monospace,monospace;' : ''}${cell === '매수' ? 'color:var(--accent);font-weight:600' : cell === '매도' ? 'color:var(--green);font-weight:600' : ''}">${cell}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-title">흔한 실수 & 해결법</h3>
+    <div class="mistakes-list">
+      ${d.common_mistakes.map(m => `
+        <div class="mistake-item">
+          <div class="mistake-header">
+            <span class="mistake-x">X</span>
+            <span class="mistake-text">${m.mistake}</span>
+          </div>
+          <div class="mistake-consequence">${m.consequence}</div>
+          <div class="mistake-fix">
+            <span class="mistake-check">O</span>
+            ${m.fix}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="section-title">${d.checklist.title}</h3>
+    <div class="checklist">
+      ${d.checklist.items.map(item => `
+        <label class="checklist-item">
+          <input type="checkbox">
+          <span>${item}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+  document.getElementById('manual-tab').innerHTML = html;
+}
+
+renderStrategy();
+renderManual();
+</script>
+</body>
+</html>
