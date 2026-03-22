@@ -91,9 +91,13 @@ class Settings(BaseSettings):
     db_path: str = "./infinite_buy.db"
 
     # 브로커
-    broker_type: str = "mock"  # mock | kiwoom | alpaca
+    broker_type: str = "mock"  # mock | live | kiwoom
     broker_api_key: str = ""
     broker_api_secret: str = ""
+
+    # 키움증권 (BROKER_TYPE=kiwoom 일 때)
+    kiwoom_account: str = ""       # 계좌번호 (예: "8012345678")
+    kiwoom_password: str = ""      # 계좌 비밀번호
 
     # 전략 (v1 QLD 기본값)
     strategy: StrategyConfig = StrategyConfig()

@@ -24,8 +24,9 @@ backend/          FastAPI + SQLAlchemy + APScheduler
     settings.py   종목/사이클 관리
     trades.py     주문/이벤트 조회
   services/
-    broker_api.py MockBroker + LiveDataBroker (yfinance 실시간)
-    strategy.py   의사결정 엔진
+    broker_api.py   BrokerAPI 인터페이스 + MockBroker + LiveDataBroker
+    kiwoom_broker.py 키움증권 브로커 (LOC 주문 포함, TODO: Windows에서 구현)
+    strategy.py     의사결정 엔진
     risk_manager.py 리스크 관리
 frontend/         Vite + React + TypeScript + TanStack Query
   src/pages/
@@ -49,7 +50,10 @@ cd frontend && npx vite
 
 ## 핵심 규칙
 
-- 브로커: `BROKER_TYPE=live` (.env) → yfinance 실시간 시세. `mock` → 하드코딩 가격.
+- 브로커 모드 (.env의 BROKER_TYPE):
+  - `mock` → 하드코딩 가격, 즉시 체결
+  - `live` → yfinance 실시간 시세, 주문은 Mock
+  - `kiwoom` → 키움증권 실매매 (Windows 전용, KIWOOM_ACCOUNT/KIWOOM_PASSWORD 필요)
 - LOC(종가지정가) 기반 전략. 실시간 매매가 아님.
 - 매도 최소 +5% (수수료 벽). +1~2%는 수수료 떼면 무의미.
 - GitHub Pages: https://jeeseongmin.github.io/infinite-buy/

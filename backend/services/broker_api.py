@@ -84,6 +84,25 @@ class BrokerAPI(ABC):
     def get_positions(self) -> list[PositionInfo]:
         ...
 
+    # --- LOC (Limit On Close) 주문 ---
+    # 기본 구현은 NotImplementedError. 키움 등 LOC 지원 브로커에서 오버라이드.
+
+    def submit_loc_buy(
+        self, symbol: str, quantity: int, limit_price: float, client_order_id: str
+    ) -> OrderResult:
+        """LOC 매수: 종가가 limit_price 이하면 종가에 체결"""
+        raise NotImplementedError("이 브로커는 LOC 주문을 지원하지 않습니다")
+
+    def submit_loc_sell(
+        self, symbol: str, quantity: int, limit_price: float, client_order_id: str
+    ) -> OrderResult:
+        """LOC 매도: 종가가 limit_price 이상이면 종가에 체결"""
+        raise NotImplementedError("이 브로커는 LOC 주문을 지원하지 않습니다")
+
+    def supports_loc(self) -> bool:
+        """LOC 주문 지원 여부"""
+        return False
+
     @abstractmethod
     def is_connected(self) -> bool:
         ...
@@ -346,8 +365,18 @@ def get_broker() -> BrokerAPI:
         elif settings.broker_type == "live":
             _broker = LiveDataBroker()
             logger.info("LiveDataBroker 활성화 (yfinance 실시간 시세)")
+        elif settings.broker_type == "kiwoom":
+            from services.kiwoom_broker import KiwoomBroker
+            _broker = KiwoomBroker(
+                account=settings.kiwoom_account,
+                password=settings.kiwoom_password,
+            )
+            if not _broker.connect():
+                logger.error("키움 연결 실패 — LiveDataBroker로 fallback (시세만 실시간)")
+                _broker = LiveDataBroker()
+            else:
+                logger.info("KiwoomBroker 활성화 (실매매 모드)")
         else:
-            # TODO: 키움 / Alpaca 브로커 구현
             _broker = MockBroker()
             logger.warning(f"브로커 '{settings.broker_type}' 미구현, Mock 사용")
     return _broker
