@@ -1,4 +1,6 @@
+import json
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -33,13 +35,31 @@ class CycleStart(BaseModel):
 
 
 class StrategySettingsUpdate(BaseModel):
+    symbol: str | None = None
+    cycle_budget: float | None = None
     tranche_count: int | None = None
-    take_profit_pct: float | None = None
-    add_trigger_pct: float | None = None
-    soft_drawdown_pct: float | None = None
+    loc_buy1_trigger: float | None = None
+    loc_buy2_trigger: float | None = None
+    loc_buy2_ratio: float | None = None
+    loc_sell1_target: float | None = None
+    loc_sell1_ratio: float | None = None
+    loc_sell2_target: float | None = None
+    loc_sell2_ratio: float | None = None
     hard_drawdown_pct: float | None = None
-    max_daily_buys: int | None = None
+    rollback_on_exhaust: bool | None = None
+    rollback_target_tranche: int | None = None
     cooldown_after_exit_min: int | None = None
+
+class RegimeSettingsUpdate(BaseModel):
+    enabled: bool | None = None
+    symbol: str | None = None
+    sma_period: int | None = None
+    vix_filter_enabled: bool | None = None
+    vix_max: float | None = None
+
+class SettingsUpdate(BaseModel):
+    strategy: StrategySettingsUpdate | None = None
+    regime: RegimeSettingsUpdate | None = None
 
 
 # --- 설정 ---
@@ -56,6 +76,44 @@ def get_current_settings():
         "broker_type": settings.broker_type,
         "decision_interval_sec": settings.decision_interval_sec,
     }
+
+
+@router.put("/settings")
+def update_settings(data: SettingsUpdate):
+    """설정 업데이트 → .env 파일에 저장"""
+    settings = get_settings()
+    env_path = Path(__file__).parent.parent / ".env"
+    env_lines: dict[str, str] = {}
+
+    # 기존 .env 읽기
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                env_lines[k.strip()] = v.strip()
+
+    # strategy 업데이트
+    if data.strategy:
+        for field, value in data.strategy.model_dump(exclude_none=True).items():
+            setattr(settings.strategy, field, value)
+
+    # regime 업데이트
+    if data.regime:
+        for field, value in data.regime.model_dump(exclude_none=True).items():
+            setattr(settings.regime, field, value)
+
+    # .env에 JSON으로 저장 (pydantic-settings가 읽을 수 있게)
+    env_lines["BROKER_TYPE"] = settings.broker_type
+    env_lines["STRATEGY"] = json.dumps(settings.strategy.model_dump(), ensure_ascii=False)
+    env_lines["REGIME"] = json.dumps(settings.regime.model_dump(), ensure_ascii=False)
+
+    env_path.write_text("\n".join(f"{k}={v}" for k, v in env_lines.items()) + "\n")
+
+    # 캐시 클리어 (다음 호출 시 새 설정 로드)
+    get_settings.cache_clear()
+
+    return {"message": "설정 저장 완료"}
 
 
 # --- 종목 관리 ---

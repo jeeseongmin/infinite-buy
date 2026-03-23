@@ -117,15 +117,39 @@ export interface HealthStatus {
   paused: boolean;
 }
 
+export interface StrategySettings {
+  symbol: string;
+  cycle_budget: number;
+  tranche_count: number;
+  loc_buy1_trigger: number;
+  loc_buy2_trigger: number;
+  loc_buy2_ratio: number;
+  loc_sell1_target: number;
+  loc_sell1_ratio: number;
+  loc_sell2_target: number;
+  loc_sell2_ratio: number;
+  hard_drawdown_pct: number;
+  rollback_on_exhaust: boolean;
+  rollback_target_tranche: number;
+  cooldown_after_exit_min: number;
+}
+
+export interface RegimeSettings {
+  enabled: boolean;
+  symbol: string;
+  sma_period: number;
+  vix_filter_enabled: boolean;
+  vix_max: number;
+}
+
 export interface AppSettings {
-  strategy: Record<string, unknown>;
-  session: Record<string, unknown>;
+  strategy: StrategySettings;
+  regime: RegimeSettings;
   risk: Record<string, unknown>;
-  execution: Record<string, unknown>;
-  cascade: Record<string, unknown>;
   kill_switch: Record<string, unknown>;
+  notification: Record<string, unknown>;
+  broker_type: string;
   decision_interval_sec: number;
-  regime_symbol: string;
 }
 
 // === API ===
@@ -203,6 +227,12 @@ export const fetchEvents = (params?: {
 };
 
 export const fetchSettings = () => request<AppSettings>('/settings');
+
+export const updateSettings = (data: { strategy?: Partial<StrategySettings>; regime?: Partial<RegimeSettings> }) =>
+  request<{ message: string }>('/settings', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 
 export const fetchHealth = () => request<HealthStatus>('/health');
 

@@ -478,6 +478,21 @@ input:focus {
   margin-bottom: 40px;
 }
 
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.settings-grid .form-group {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 0;
+}
+
 /* === Modal === */
 .modal-overlay {
   position: fixed;
