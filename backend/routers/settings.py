@@ -49,13 +49,12 @@ def get_current_settings():
     settings = get_settings()
     return {
         "strategy": settings.strategy.model_dump(),
-        "session": settings.session.model_dump(),
+        "regime": settings.regime.model_dump(),
         "risk": settings.risk.model_dump(),
-        "execution": settings.execution.model_dump(),
-        "cascade": settings.cascade.model_dump(),
         "kill_switch": settings.kill_switch.model_dump(),
+        "notification": settings.notification.model_dump(),
+        "broker_type": settings.broker_type,
         "decision_interval_sec": settings.decision_interval_sec,
-        "regime_symbol": settings.regime_symbol,
     }
 
 
@@ -147,9 +146,9 @@ def start_cycle(data: CycleStart, db: Session = Depends(get_db)):
         buy_mode=BuyMode(data.buy_mode),
         cycle_budget=data.cycle_budget,
         tranche_count=data.tranche_count or settings.strategy.tranche_count,
-        take_profit_pct=data.take_profit_pct or settings.strategy.take_profit_pct,
-        add_trigger_pct=data.add_trigger_pct or settings.strategy.add_trigger_pct,
-        soft_drawdown_pct=data.soft_drawdown_pct or settings.strategy.soft_drawdown_pct,
+        take_profit_pct=data.take_profit_pct or settings.strategy.loc_sell1_target,
+        add_trigger_pct=data.add_trigger_pct or settings.strategy.loc_buy2_trigger,
+        soft_drawdown_pct=data.soft_drawdown_pct or settings.strategy.hard_drawdown_pct * 0.5,
         hard_drawdown_pct=data.hard_drawdown_pct or settings.strategy.hard_drawdown_pct,
     )
     db.add(cycle)
